@@ -1,11 +1,3 @@
-/*
- * rm_multidupl.cpp
- *
- *  Created on: 29 déc. 2015
- *      Author: drubay
- */
-
-
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -13,8 +5,8 @@
 #include <istream>
 #include <stdio.h>
 #include <cstring>
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>       /* time */
+#include <stdlib.h> 
+#include <time.h>  
 #include <vector>
 
 
@@ -23,14 +15,8 @@ using namespace std;
 
 
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]){
 	ifstream data(argv[1], std::ios::in);
-//	ifstream data("../Databases/data1KGp1.txt", std::ios::in);
-//	ofstream output("../Databases/udata1KGp1.txt", ios::out | ios::trunc);
-
-
-	/*checks*/
 	if (!data) {cerr << "The input file does not exist." << std::endl;return 1;}
 
 	string ldata,elts;
@@ -52,7 +38,6 @@ int main(int argc, char* argv[])
 
 	while(test==0){
 		getline(data,ldata,'\n');
-//		if(data.eof()){cout << "eof"<<endl;}
 		istringstream line(ldata);
 		count=0;
 		while(getline(line,elts,'\t')){

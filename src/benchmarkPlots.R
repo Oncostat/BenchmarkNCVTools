@@ -3,11 +3,8 @@
 
 
 ARGS<-commandArgs(trailingOnly=TRUE)
-#nbCores<-ARGS
 minRec<-max(2,ARGS[1])
 maxRec<-ARGS[2]
-
-#ARGS<-ARGS[-c(1,2)]
 
 legCex<-1
 labAxisCex<-1.5
@@ -55,7 +52,6 @@ if(file.exists("Results/Clinvar/Tables/ROCAUC_Clinvar.txt") & file.exists("Resul
 	direction<-read.delim(paste0("Results/Clinvar/Tables/direction_Clinvar.txt"),sep=" ",stringsAsFactors=F)
 	eff<-read.delim(paste0("Results/Clinvar/Tables/eff_Clinvar.txt"),sep=" ",stringsAsFactors=F)
 	trainingSet<-colnames(direction)
-	#paste0(toupper(substr(tolower(trainingSet),1,1)),substr(tolower(trainingSet),2,nchar(trainingSet)))
 	for(j in trainingSet){
 		for(r in c("ROC","PR")){
 			auc<-read.delim(paste0("Results/Clinvar/Tables/",r,"AUC_Clinvar.txt"),sep=" ",stringsAsFactors=F)

@@ -20,19 +20,10 @@ ARGS<-c("Databases/Clinvar.txt","Databases/COSMIC.txt","Databases/data1KG.unmatc
 logFile<-NULL
 
 args<-tolower(ARGS)
-#Clinvar<-ARGS[grep("clinvar",args)]
-##regionClinvar<-ARGS[grep("regionclin",args)]
-#COSMIC<-ARGS[grep("cosmic",args)]
-#KG<-ARGS[grep("unmatched",args)]
-##Confirmed SOM COSMIC variants?
 tmp<-grep("conf",args)
 if(length(tmp)==0){
-#	COSMICregions<-ARGS[grep("regioncos",args)]
-#	COSMICregionsconf<-NULL
 	conf<-FALSE
 }else{
-#	COSMICregions<-ARGS[grep("regioncos",args)]
-#	COSMICregionsconf<-ARGS[tmp]
 	conf<-TRUE
 }
 rm(tmp)
@@ -93,16 +84,9 @@ results<-function(dataPathos,controls,folder=NULL){ #allows to parallelize ?
 		paste0("Results/",folder,"/Tables/direction_",dataPathos,".txt"),
 		paste0("Results/",folder,"/Tables/eff_",dataPathos,".txt"))
 	return(out)
-#	write.table(savetab,paste0("Results/",folder,"/Tables/ROCAUC_",dataPathos,".txt"),row.names=F,quote=F)
-#	write.table(savetabpr,paste0("Results/",folder,"/Tables/PRAUC_",dataPathos,".txt"),row.names=F,quote=F)
-#	write.table(direction,paste0("Results/",folder,"/Tables/direction_",dataPathos,".txt"),row.names=F,quote=F)
-#	write.table(eff,paste0("Results/",folder,"/Tables/eff_",dataPathos,".txt"),row.names=F,quote=F)
-#!!!!!!!!!!!!!!!! eff has been transposed
 }
 
 
-#here Clinvar
-# -> results function
 Clinvar<-read.delim(ARGS[grep("clinvar",args)],h=F,stringsAsFactor=F,row.names=NULL)
 colnames(Clinvar)<-c("chr","pos","ref","alt","id","GWAVA_region","GWAVA_TSS","GWAVA_unmatched","CADD","DANN","FATHMM_MKL","Funseq2","snp","somcll","somliver","somlung","sommel")
 Clinvar<-subset(Clinvar,select=-c(id))
@@ -118,67 +102,32 @@ logFile<-c(logFile,"Succeed in Clinvar benchmark.")
 write.table(logFile,"benchmarkResults.log",row.names=F,quote=F)
 
 
-#TODO:Change here: read each cosmic recurrence file -> avoids to upload entirely the COSMIC database several time, in order to save memory in the case of parallel computing
-#here COSMIC
-# -> loop for recurrence 
-# -> results function
 COSMIC<-read.delim(ARGS[grep("cosmic",args)],h=F,stringsAsFactor=F,row.names=NULL)
 colnames(COSMIC)<-c("chr","pos","ref","alt","project","recConf","recUnkn","recTotal","GWAVA_region","GWAVA_TSS","GWAVA_unmatched","CADD","DANN","FATHMM_MKL","Funseq2","snp","somcll","somliver","somlung","sommel")
 COSMIC<-subset(COSMIC,select=-c(project))
-#COSMIC<-COSMIC[!is.na(COSMIC$somlung),]
-
-
-#if(nbcores>1){
-#	out<-list()
-#	library(parallel)
-#	cl <- makeCluster(nbcores, type="FORK")
-#	mclapply(minRec:maxRec,function(thres){
-#	#for(thres in minRec:maxRec){
-#		for(rec in c("recConf","recUnkn","recTotal")){
-#			assign(paste0("COSMIC",rec,thres),COSMIC[COSMIC[,rec]>=thres,])
-#			if(nrow(get(paste0("COSMIC",rec,thres)))>0){
-#				region<-read.delim(ARGS[grep(paste0("regioncos",tolower(rec),thres,".txt"),args)],h=F,stringsAsFactor=F,row.names=NULL)
-#				if(nrow(region)>0){
-#					colnames(region)<-c("chr","pos","ref","alt","AF","GWAVA_region","GWAVA_TSS","GWAVA_unmatched","CADD","DANN","FATHMM_MKL","Funseq2","snp","somcll","somliver","somlung","sommel")
-#					region<-subset(region,select=-c(AF))
-#					out<-c(out,results(paste0("COSMIC",rec,thres),c("unmatched","region"),folder="COSMIC"))
-#					rm(region)
-#					gc()
-#					rm(get(paste0("COSMIC",rec,"_",thres)))
-#					gc()
-#				}
-#			}
-#		}
-#	})
-#	stopCluster(cl)
-#}else{
-
-#minRec<-1
-#maxRec<-1
-	out<-list()
-	for(thres in minRec:maxRec){
-		#print(thres)
-		for(rec in c("recConf","recUnkn","recTotal")){
-			#print(rec)
-			dataPathos<-paste0("COSMIC",rec,thres)
-			assign(dataPathos,COSMIC[COSMIC[,rec]>=thres,])
-			if(nrow(get(dataPathos))>0){
-				region<-read.delim(ARGS[grep(paste0("regioncos",tolower(rec),thres,".txt"),args)],h=F,stringsAsFactor=F,row.names=NULL)
-				if(nrow(region)>0){
-					colnames(region)<-c("chr","pos","ref","alt","AF","GWAVA_region","GWAVA_TSS","GWAVA_unmatched","CADD","DANN","FATHMM_MKL","Funseq2","snp","somcll","somliver","somlung","sommel")
-					region<-subset(region,select=-c(AF))
-					out<-c(out,results(dataPathos,c("unmatched","region"),folder="COSMIC"))
-					rm(region)
-					gc()
-				}
+out<-list()
+for(thres in minRec:maxRec){
+	#print(thres)
+	for(rec in c("recConf","recUnkn","recTotal")){
+		#print(rec)
+		dataPathos<-paste0("COSMIC",rec,thres)
+		assign(dataPathos,COSMIC[COSMIC[,rec]>=thres,])
+		if(nrow(get(dataPathos))>0){
+			region<-read.delim(ARGS[grep(paste0("regioncos",tolower(rec),thres,".txt"),args)],h=F,stringsAsFactor=F,row.names=NULL)
+			if(nrow(region)>0){
+				colnames(region)<-c("chr","pos","ref","alt","AF","GWAVA_region","GWAVA_TSS","GWAVA_unmatched","CADD","DANN","FATHMM_MKL","Funseq2","snp","somcll","somliver","somlung","sommel")
+				region<-subset(region,select=-c(AF))
+				out<-c(out,results(dataPathos,c("unmatched","region"),folder="COSMIC"))
+				rm(region)
+				gc()
 			}
-			rm(list=dataPathos)
-			gc()
 		}
-		logFile<-c(logFile,paste0("Succeed in COSMIC rec ",rec," benchmark."))
-		write.table(logFile,"benchmarkResults.log",row.names=F,quote=F)
+		rm(list=dataPathos)
+		gc()
 	}
-#}
+	logFile<-c(logFile,paste0("Succeed in COSMIC rec ",rec," benchmark."))
+	write.table(logFile,"benchmarkResults.log",row.names=F,quote=F)
+}
 for(i in 1:length(out)){
 	write.table(out[[i]],names(out)[i],row.names=F,quote=F)
 }
@@ -193,44 +142,4 @@ if(minRec==maxRec){
 }
 rm(COSMIC,out)
 gc()
-
-
-
-
-#if(conf){
-#	COSMIC<-read.delim(ARGS[grep("COSMICconf",args)],h=F,stringsAsFactor=F,row.names=NULL)
-#	colnames(COSMIC)<-c("chr","pos","ref","alt","project","rec","region","tss","unmatched","cadd","dann","FATH_NC","funseq","snp","somcll","somliver","somlung","sommel")
-#	COSMIC<-subset(COSMIC,select=-c(project))
-#	#COSMIC<-COSMIC[!is.na(COSMIC$somlung),]
-#
-#	mclapply(minRec:maxRec,function(thres){
-#		assign(paste0("COSMIC_rec_",thres),COSMIC[COSMIC$rec>=thres,])
-#		region<-read.delim(ARGS[grep(paste0("regioncos",thres),args)],h=F,stringsAsFactor=F,row.names=NULL)
-#		colnames(region)<-c("chr","pos","ref","alt","AF","region","tss","unmatched","cadd","dann","FATH_NC","funseq","snp","somcll","somliver","somlung","sommel")
-#		region<-subset(region,select=-c(AF))
-#		results(paste0("COSMIC_rec_",thres),c("region"),folder="COSMIC")
-#		if(conf==TRUE){
-#			region<-read.delim(ARGS[grep(paste0("regionconfcos",thres),args)],h=F,stringsAsFactor=F,row.names=NULL)
-#			colnames(region)<-c("chr","pos","ref","alt","AF","region","tss","unmatched","cadd","dann","FATH_NC","funseq","snp","somcll","somliver","somlung","sommel")
-#			region<-subset(region,select=-c(AF))
-#			region<-region[!is.na(region$somlung),]
-#			results(paste0("COSMIC_rec_",thres),c("unmatched","region"),folder="COSMIC",extend.label="conf")
-#			rm(region)
-#			gc()
-#		}
-#		rm(get(paste0("COSMIC_rec_",thres)))
-#		gc()
-#	}
-#	rm(COSMIC)
-#	gc()
-#}
-
-
-
-
-
-#base<-4
-#mclapply(2:4, function(exponent){x<- base^exponent
-#	write.table(x,paste0("test",exponent),col.names=FALSE,row.names=FALSE)}
-#	, mc.cores=2,mc.preschedule=FALSE)
 

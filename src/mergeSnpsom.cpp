@@ -1,13 +1,3 @@
-/*
- * merge_snpsom.cpp
- *
- *  Created on: 6 janv. 2016
- *      Author: drubay
- */
-
-
-
-
 #include <iostream>
 #include <string>
 #include <fstream>

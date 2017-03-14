@@ -5,10 +5,6 @@ rule all:
 
 
 
-#snakemake --dag | dot | display
-
-
-
 ###################################
 #Variables initialization
 ###################################
@@ -98,8 +94,6 @@ rule SNPSOM_DL:
 		"sed -i s/X/23/g scores/SNPSOMcomplement.bed;"
 		"sed -i s/Y/24/g scores/SNPSOMcomplement.bed;"
 		"cat scores/tmpSNPSOM.bed scores/SNPSOMcomplement.bed | sort -nk1,1 -nk2,2 > {output};"
-#		"sed -i s/^23/X/g {output};"
-#		"sed -i s/^24/Y/g {output};"
 		"rm scores/tmpSNPSOM.bed scores/SNPSOMcomplement.bed;"
 
 rule GWAVA_DL:
@@ -107,10 +101,6 @@ rule GWAVA_DL:
 		"scores/GWAVA"
 	shell:
 		"wget -r -P {output} -np -nH --cut-dirs 5  ftp://ftp.sanger.ac.uk/pub/resources/software/gwava/v1.0/ ;"
-#		"a=$(pip freeze | grep scikit-learn);"
-#		"b=(${{a//=/ }});"
-#		"b=${{b[1]}};"
-#		"./updatePython $b;"
 
 rule KG_DL:
 	output:
@@ -246,6 +236,7 @@ rule Remove_HGMD_variants:
 
 ###############################################################
 #Scoring
+#To improve speed in this part, databases could be splitted. Dynamic snakemake rules could deal with this splitted data
 rule GWAVA_scoring:
 	input:
 		"databases/{file}.clean"
@@ -285,11 +276,6 @@ rule GWAVA_scoring:
 		"rm {input}.gw;"
 		"sed -i -r 's/(\s+)?\S+//2' {output};"
 		"unset a b myFiles f;"
-#		"sed -i 's/X\t/23\t/g' {output};"
-#		"sed -i 's/Y\t/24\t/g' {output};"
-
-#larger is better, for the 2,281,292 lines of COSMIC, 4 days using files of 1000, 4-5 hours using files of 1000000 lines
-#but be careful to the RAM !
 
 rule MakeIndex:
 	input:
@@ -303,41 +289,14 @@ rule MakeIndex:
 		"./src/makeIndex"
 
 
-
-#rule split1KG:
-#	input:
-#		"databases/data1KG.gw"
-#	output: 
-##		map(lambda x: 'databases/data1KG'+str(x)+'gw',range(0,len(filesToScore)+1))
-#		dynamic("databases/data1KG{num}.gw")
-#	shell:
-#		"src/split {input} 1000000 .gw"
-##	run:
-##		call("./src/split","databases/data1KG.gw","1000000","gw")
-##		filesToScore = [s for s in [f for f in os.listdir('.') if os.path.isfile(f)] if ".gw" in s]
-##		filesToScore = [s for s in filesToScore if "data1KG" in s]
-##		if "data1KG.gw" in filesToScore: filesToScore.remove("data1KG.gw")
-
-
-
-
 rule Scoring:
 	input:
-		#"databases/data1KG{num}.gw",
-		#["databases/Clinvar.gw","databases/COSMIC.gw","databases/data1KG{num}.gw"],
 		"databases/{file}.gw",
-		#"scores/CADD_scores.tsv",
-		#"scores/DANN_scores.tsv",
-		#"scores/FATH_scores.tsv",
-		#"scores/Funseq2_scores.tsv",
 		"scores/SNPSOM.bed",
 		"scores/initscores",
 		"scores/index"
 	output:
 		"databases/{file}.txt"
-		#"databases/data1KG{num}.txt"
-		#["databases/Clinvar.txt","databases/COSMIC.txt","databases/data1KG{num}.txt"]
-		#["databases/Clinvar.txt","databases/COSMIC.txt",map(lambda x: 'databases/data1KG'+str(x)+'gw',range(0,len(filesToScore)+1))],
 	shell:
 		"src/variantScoring {input[0]} {input[0]}.tmp;"
 		"egrep -v NA {input[0]}.tmp | sort -nk1,1 -nk2,2 -k4,4 > {input[0]}.temp;" #Remove_unscorable
@@ -347,28 +306,18 @@ rule Scoring:
 		"egrep -v NA {input[0]}.out | sort -nk1,1 -nk2,2 -k4,4 > {output};" #Remove_unscorable
 		"rm {input[0]}.out;"
 
-#rule cat1KG:
-#	input:Conf
-#		dynamic("databases/data1KG{num}.txt")		
-#	output:
-#		"databases/data1KG.txt"
-#	shell:
-#		"cat {input} >> {output}"
 
 ###############################################################
 #finalization of the DM		
-
 rule COSMIC_recurrence:
 	input:
-		"databases/COSMIC.txt"#,"databases/COSMICconf.txt"
+		"databases/COSMIC.txt"
 	output:
 		['databases/COSMICrec'+x+str(y)+'.txt' for x in COSMICsubsets for y in range(int(minrec),int(maxrec)+1)] #map(lambda x: 'databases/COSMICrec'+str(x)+'.txt',range(int(minrec),int(maxrec)+1))#,map(lambda x: 'databases/COSMICconfrec'+str(x)+'.txt',range(int(minrec),int(maxrec)+1))
 	shell:
 		"./src/filterRec {input} {minrec} {maxrec};"
 
 
-# modify KG_subset for region of all COSMIC subset...
-#for R code, keep only the large dataset (unnecessary to load each dataset...) -> COSMIC1.final, COSMIC2.final,..., can be removed after the KG_subset
 rule KG_subsets:
 	input:
 		"databases/data1KG.txt","databases/Clinvar.txt",['databases/COSMICrec'+x+str(y)+'.txt' for x in COSMICsubsets for y in range(int(minrec),int(maxrec)+1)]#map(lambda x: 'databases/COSMICrec'+str(x)+'.txt',range(int(minrec),int(maxrec)+1))
@@ -386,7 +335,6 @@ rule KG_subsets:
 		"./src/region databases/KG1pc.txt databases/COSMICrecTotal$f.txt > databases/data1KG.regioncosrecTotal$f.txt;"
 		"rm databases/COSMICrecConf$f.txt databases/COSMICrecUnkn$f.txt databases/COSMICrecTotal$f.txt;"
 		"done;"
-		#"rm databases/KG1pc.txt"
 
 
 ###############################################################
@@ -423,7 +371,6 @@ rule Annotation:
 rule Descriptive:
 	input:
 		expand("databases/annot{descFile}.txt",descFile=['Clinvar','COSMIC','HGMD'])
-		#"databases/annotClinvar.txt","databases/annotCOSMIC.txt","databases/annotHGMD.txt"
 	output:
 		"results/FeaturesDist.jpeg"
 	shell:
@@ -436,9 +383,6 @@ rule Analyze:
 	input:
 		"databases/Clinvar.txt","databases/COSMIC.txt","databases/data1KG.unmatched",
 		"databases/data1KG.regionclin",['databases/data1KG.regioncosrec'+x+str(y)+'.txt' for x in COSMICsubsets for y in range(int(minrec),int(maxrec)+1)] #map(lambda x: 'databases/data1KG.regioncos'+str(x)+'.txt',range(int(minrec),int(maxrec)+1))
-		#,map(lambda x: 'databases/data1KG.regionconfcos'+str(x)+'.txt',range(int(minrec),int(maxrec)+1))
-		#dynamic("databases/data1KG{num}.txt")
-		#["databases/Clinvar.txt","databases/COSMIC.txt",dynamic("databases/data1KG{num}.txt")]
 	output:
 		"benchmarkresults.log" #write by benchmark.R
 	threads: 
@@ -447,14 +391,3 @@ rule Analyze:
 		"Rscript --vanilla src/benchmark.R {threads} {input};"  #{threads} will be the min between 1000 and the "--cores" option
 		"Rscript --vanilla src/benchmarkPlots.R {minrec} {maxrec};"
 
-###############################################################
-
-#rule all:
-#	input:
-#		#"descriptiveresults.txt","benchmarkresults.txt"
-#		"benchmarkresults.log","results/FeaturesDist.jpeg"
-#	output:
-#		"report.txt"
-#	shell:
-#		"bc <<< 2+2 > {output};"
-		#"Rscript report.R"

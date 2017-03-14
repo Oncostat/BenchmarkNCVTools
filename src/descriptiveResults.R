@@ -130,34 +130,3 @@ for(i in c("rna","pseudo","gene","other")){
 dev.off()
 
 
-
-#############
-#out the most rec features distribution  (>10?)
-mostRecConf<-(maxRec:minRec)[which(rev(countRecConf)>=10)[1]]
-mostRecUnkn<-(maxRec:minRec)[which(rev(countRecUnkn)>=10)[1]]
-mostRecTotal<-(maxRec:minRec)[which(rev(countRecTotal)>=10)[1]]
-
-for(rec in c("Conf","Unkn","Total")){
-	data<-cosmic[cosmic[,paste0("rec",rec)]>=get(paste0("mostRec",rec)),]
-	out<-data[,c("chr","pos",paste0("rec",rec))]
-	out$f<-unlist(lapply(apply(data,1,function(x) colnames(data)[-c(1:5)][x[-c(1:5)]>0]),function(x) paste(x,collapse=", ")))
-	colnames(out)<-c("Chromosome","Position","Recurrence","Features")
-	out<-out[order(out$Chromosome,out$Position),]
-	out<-out[order(out$Recurrence,decreasing = T),]
-	write.table(out,paste0("Results/mostRec",rec,".txt"),row.names=F,quote = F,sep='\t')
-}
-
-#feats<-c(read.delim("Databases/feat_gencode.txt",h=F,stringsAsFactors=F)) -> use colnames...
-
-
-
-
-
-
-
-
-
-#abc<-read.delim("../Databases/most_rec_features.txt",h=T,stringsAsFactors=F)
-#abc[,4]<-gsub("_"," ",abc[,4],fixed=T)
-#abc[abc[,4]=="notingencode",4]<-"Unknown"
-#print(xtable(abc),include.rownames=F,sanitize.text.function=force)

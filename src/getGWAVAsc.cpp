@@ -56,23 +56,5 @@ int main(int argc, char* argv[]){
             }
         }
 
-
-/*        while(getline(gwava,lscore)){
-		boost::split(strsc, lscore, boost::is_any_of("\t"));
-		pos = data.tellg();
-		tmp=strsc.at(0).substr(3,strsc.at(0).length()-3);
-		while(getline(data,ldata)){	
-			vector<string> strsd(3,"");
-			istringstream w(ldata);
-			count=0;
-			while(getline(w,elts,'\t') && count<3){strsd.at(count)=elts;count++;}
-			if(strsd[0]==tmp && strsd[1]==strsc[2]){
-				cout << ldata << '\t' << strsc[4] << '\t' << strsc[5] << '\t' << strsc[6] << endl;
-				data.clear();
-				data.seekg(pos);
-				break;
-			}
-		}
-        }*/
 	return 0;
 }

@@ -4,7 +4,6 @@
 #include <istream>
 #include <stdio.h>
 #include <vector>
-//#include <algorithm>    // std::min_element, std::max_element
 #include <boost/algorithm/string.hpp>
 
 using namespace std;
@@ -26,9 +25,6 @@ int main(int argc, char* argv[]){
     while(getline(features,lfile)){feats.push_back(lfile);lout+='\t'+lfile;}
     feats.push_back("-1");lout+="\t-1";
     out.push_back(lout);
-
-
-
 
     vector<string> genPos(2);
     vector<int> featureCount(feats.size(),0);
@@ -55,10 +51,10 @@ int main(int argc, char* argv[]){
         if(genPos[0]!=strs[0] || genPos[1]!=strs[1]){
             lout=genPos[0]+'\t'+genPos[1];
             for(int i=0;i<featureCount.size();++i){
-                lout+='\t'+to_string(featureCount[i]); //to_string?
+                lout+='\t'+to_string(featureCount[i]); 
             }
             out.push_back(lout);
-            fill(featureCount.begin(),featureCount.end(),0); //std::fill
+            fill(featureCount.begin(),featureCount.end(),0); 
             genPos[0]=strs[0];
             genPos[1]=strs[1];
         }
