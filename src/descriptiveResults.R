@@ -8,7 +8,7 @@ ARGS<-ARGS[-c(1:2)]
 x<-c("Clinvar","COSMIC","HGMD")[sapply(c("Clinvar","COSMIC","HGMD"),function(x) length(grep(x,ARGS))==0)]
 if(length(x)!=0){stop(paste0(paste(x,collapse=" and ")," files ",ifelse(length(x)==1,"was","were")," not found."))}
 
-
+#ARGS<-paste0("Databases/annot",c("Clinvar","COSMIC","HGMD"),".txt")
 
 clin<-read.delim(ARGS[grep("Clinvar",ARGS)],h=T,stringsAsFactors=F)
 cosmic<-read.delim(ARGS[grep("COSMIC",ARGS)],h=T,stringsAsFactors=F)
@@ -100,7 +100,12 @@ for(i in c("rna","pseudo","gene","other")){
 }
 dev.off()
 
-jpeg(paste0("Results/FeaturesDist.jpeg"),width=7,height=6,units="in",res=350)
+#jpeg(paste0("Results/FeaturesDist.jpeg"),width=7,height=6,units="in",res=350)
+freq$Features<-gsub("[[:punct:]]"," ",freq$Features)
+freq$Features[freq$Features=="No_GENCODE_feature"]<-"no_GENCODE_feature"
+freq$Features[freq$Features=="Selenocysteine"]<-"selenocysteine"
+postscript("Results/FeaturesDist.eps",width=7,height=6)
+postscript("../../Article/FigS1_Feature_distribution.eps",width=1120,height=960)
 par(mfrow=c(2,2))
 stockRows<-NULL
 rec<-minRec:(length(grep("Rec",colnames(freq)))+1)
@@ -125,8 +130,46 @@ for(i in c("rna","pseudo","gene","other")){
 	plot(0,0,type='l',xlim=c(minRec,max(rec)),ylim=c(0,max(data[,-1])),xlab="Recurrence",ylab="Frequency (%)",lwd=3,col="white",main=titl)  #/max(data[,1])     
 	abline(h=data[,2],col=rep(1:8,2))
 	for(j in 1:nrow(data)){lines(rec,data[j,4:ncol(data)],col=j*I(j<8)+j*I(j>=8),lty=1*(1+I(j>8)),lwd=3)}
-	legend("topright",legend=data$Features,col=rep(1:8,3),bty="n",lty=1*(1+I(1:nrow(data)>8)))
+	if(i=="other"){
+		coords1<-1:(floor(length(data$Features)/2))
+		coords2<-(floor(length(data$Features)/2+1)):length(data$Features)
+		legend("topleft", legend=data$Features[coords1],col=coords1,lwd=stroke_width,bty="n",lty=1,cex=0.75)
+		legend("topright", legend=data$Features[coords2],col=coords2,lwd=stroke_width,bty="n",lty=2,cex=0.75)
+	}else{
+		legend("topleft",legend=data$Features,col=rep(1:8,3),bty="n",lty=1*(1+I(1:nrow(data)>8)),cex=0.75)
+	}
 }
 dev.off()
 
 
+
+#############
+#out the most rec features distribution  (>10?)
+mostRecConf<-(maxRec:minRec)[which(rev(countRecConf)>=10)[1]]
+mostRecUnkn<-(maxRec:minRec)[which(rev(countRecUnkn)>=10)[1]]
+mostRecTotal<-(maxRec:minRec)[which(rev(countRecTotal)>=10)[1]]
+
+for(rec in c("Conf","Unkn","Total")){
+	data<-cosmic[cosmic[,paste0("rec",rec)]>=get(paste0("mostRec",rec)),]
+	out<-data[,c("chr","pos",paste0("rec",rec))]
+	out$f<-unlist(lapply(apply(data,1,function(x) colnames(data)[-c(1:5)][x[-c(1:5)]>0]),function(x) paste(x,collapse=", ")))
+	colnames(out)<-c("Chromosome","Position","Recurrence","Features")
+	out<-out[order(out$Chromosome,out$Position),]
+	out<-out[order(out$Recurrence,decreasing = T),]
+	write.table(out,paste0("Results/mostRec",rec,".txt"),row.names=F,quote = F,sep='\t')
+}
+
+#feats<-c(read.delim("Databases/feat_gencode.txt",h=F,stringsAsFactors=F)) -> use colnames...
+
+
+
+
+
+
+
+
+
+#abc<-read.delim("../Databases/most_rec_features.txt",h=T,stringsAsFactors=F)
+#abc[,4]<-gsub("_"," ",abc[,4],fixed=T)
+#abc[abc[,4]=="notingencode",4]<-"Unknown"
+#print(xtable(abc),include.rownames=F,sanitize.text.function=force)

@@ -3,15 +3,11 @@
 
 
 ARGS<-commandArgs(trailingOnly=TRUE)
+#nbCores<-ARGS
 minRec<-max(2,ARGS[1])
 maxRec<-ARGS[2]
 
-legCex<-1
-labAxisCex<-1.5
-stroke_width<-1.5
-colors<-c(1,1,2,"darkgreen",4,4,4,5,rep("purple",4))
-typeline<-c(1,2,1,1,1,2,3,1,1,2,3,4)
-scores<-c("CADD","DANN","FATHMM_MKL","Funseq2","GWAVA_region","GWAVA_TSS","GWAVA_unmatched","snp","somcll","somliver","somlung","sommel")
+#ARGS<-ARGS[-c(1,2)]
 
 
 for(folder in c("Clinvar","COSMIC")){ #constitute the list of the files and make checks
@@ -50,15 +46,30 @@ scores<-c("CADD","DANN","FATHMM_MKL","Funseq2","GWAVA_region","GWAVA_TSS","GWAVA
 if(file.exists("Results/Clinvar/Tables/ROCAUC_Clinvar.txt") & file.exists("Results/Clinvar/Tables/PRAUC_Clinvar.txt") & 
 	file.exists("Results/Clinvar/Tables/direction_Clinvar.txt") & file.exists("Results/Clinvar/Tables/eff_Clinvar.txt")){
 	direction<-read.delim(paste0("Results/Clinvar/Tables/direction_Clinvar.txt"),sep=" ",stringsAsFactors=F)
+	for(d in 1:ncol(direction)){
+		direction[,d]<-gsub("Negative_","Decreasing ",direction[,d])
+		direction[,d]<-gsub("FATHMM_MKL","FATHMM-MKL",direction[,d])
+		direction[,d]<-gsub("snp","SNP",direction[,d])
+		direction[,d]<-gsub("somcll","SOM[CLL]",direction[,d])
+		direction[,d]<-gsub("somliver","SOM[Liver]",direction[,d])
+		direction[,d]<-gsub("somlung","SOM[Lung]",direction[,d])
+		direction[,d]<-gsub("sommel","SOM[Melanoma]",direction[,d])
+		direction[,d]<-gsub("GWAVA_","GWAVA[",direction[,d])
+		direction[grep("GWAVA",direction[,d]),d]<-paste0(direction[grep("GWAVA",direction[,d]),d],"]")
+		direction[,d]<-gsub(" ","~",direction[,d])
+	}
 	eff<-read.delim(paste0("Results/Clinvar/Tables/eff_Clinvar.txt"),sep=" ",stringsAsFactors=F)
 	trainingSet<-colnames(direction)
+	#paste0(toupper(substr(tolower(trainingSet),1,1)),substr(tolower(trainingSet),2,nchar(trainingSet)))
 	for(j in trainingSet){
 		for(r in c("ROC","PR")){
 			auc<-read.delim(paste0("Results/Clinvar/Tables/",r,"AUC_Clinvar.txt"),sep=" ",stringsAsFactors=F)
 			npathos<-eff[grep(j,eff[,1]),grep("pathos",colnames(eff))]
 			ncontrols<-eff[grep(j,eff[,1]),grep("controls",colnames(eff))]
 			colauc<-grep(j,colnames(auc))
-			jpeg(paste0("Results/Clinvar/Figures/",r,"_",j,"_Clinvar.jpeg"),width=7,height=6,units="in",res=350)
+			#jpeg(paste0("Results/Clinvar/Figures/",r,"_",j,"_Clinvar.jpeg"),width=7,height=6,units="in",res=350)
+			postscript(paste0("Results/Clinvar/Figures/",r,"_",j,"_Clinvar.eps"),width=7,height=6)
+			#pdf(paste0("Results/Clinvar/Figures/",r,"_",j,"_Clinvar.pdf"), width = 4, height = 4)
 			par(mar=c(4.1,4.1,0.1,2.1))
 			for(n in 1:length(scores)){
 				rowauc<-grep(scores[n],auc$scores)
@@ -76,10 +87,10 @@ if(file.exists("Results/Clinvar/Tables/ROCAUC_Clinvar.txt") & file.exists("Resul
 						#main=paste0("Controls: ",m),
 						lwd=stroke_width,
 						xlim=c(0,1),ylim=c(0,1))
-					leg<-paste0(direction[n,grep(j,colnames(direction))]," (AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")")
+					leg<-paste0(direction[n,grep(j,colnames(direction))],"~'(AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")'")
 				}else{
 					lines(curvesc[,1],curvesc[,2],col=colors[n],lty=typeline[n],lwd=stroke_width)
-					leg<-c(leg,paste0(direction[n,grep(j,colnames(direction))]," (AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")"))
+					leg<-c(leg,paste0(direction[n,grep(j,colnames(direction))],"~'(AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")'"))
 				}
 				
 			}
@@ -92,7 +103,7 @@ if(file.exists("Results/Clinvar/Tables/ROCAUC_Clinvar.txt") & file.exists("Resul
 					legend("topleft",legend=paste0(c("n ClinVar = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
 				}				
 			}else{
-				leg<-c(leg,paste0("prevalence = ",sprintf("%.2f",npathos/(ncontrols+npathos))))
+				leg<-c(leg,paste0("'prevalence = ",sprintf("%.2f",npathos/(ncontrols+npathos)),"'"))
 				colors<-c(colors,"lightgray")
 				abline(h=npathos/(ncontrols+npathos),col="lightgray",lwd=2)
 				if(npathos/(ncontrols+npathos)>0.4){
@@ -101,7 +112,7 @@ if(file.exists("Results/Clinvar/Tables/ROCAUC_Clinvar.txt") & file.exists("Resul
 					legend("topleft",legend=paste0(c("n ClinVar = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
 				}				
 			}
-			legend(posleg, legend=leg,col=colors,lwd=stroke_width,bty="n",cex=legCex,lty=typeline)
+			legend(posleg, legend=parse(text=leg),col=colors,lwd=stroke_width,bty="n",cex=legCex,lty=typeline)
 			dev.off()
 		}
 	}
@@ -114,6 +125,18 @@ for(i in c("recConf","recUnkn","recTotal")){
 		if(file.exists(paste0("Results/COSMIC/Tables/ROCAUC_COSMIC",i,rec,".txt")) & file.exists(paste0("Results/COSMIC/Tables/PRAUC_COSMIC",i,rec,".txt")) & 
 			file.exists(paste0("Results/COSMIC/Tables/direction_COSMIC",i,rec,".txt")) & file.exists(paste0("Results/COSMIC/Tables/eff_COSMIC",i,rec,".txt"))){
 			direction<-read.delim(paste0("Results/COSMIC/Tables/direction_COSMIC",i,rec,".txt"),sep=" ",stringsAsFactors=F)
+			for(d in 1:ncol(direction)){
+				direction[,d]<-gsub("Negative_","Decreasing ",direction[,d])
+				direction[,d]<-gsub("FATHMM_MKL","FATHMM-MKL",direction[,d])
+				direction[,d]<-gsub("snp","SNP",direction[,d])
+				direction[,d]<-gsub("somcll","SOM[CLL]",direction[,d])
+				direction[,d]<-gsub("somliver","SOM[Liver]",direction[,d])
+				direction[,d]<-gsub("somlung","SOM[Lung]",direction[,d])
+				direction[,d]<-gsub("sommel","SOM[Melanoma]",direction[,d])
+				direction[,d]<-gsub("GWAVA_","GWAVA[",direction[,d])
+				direction[grep("GWAVA",direction[,d]),d]<-paste0(direction[grep("GWAVA",direction[,d]),d],"]")
+				direction[,d]<-gsub(" ","~",direction[,d])
+			}
 			eff<-read.delim(paste0("Results/COSMIC/Tables/eff_COSMIC",i,rec,".txt"),sep=" ",stringsAsFactors=F)
 			trainingSet<-colnames(direction)
 			#paste0(toupper(substr(tolower(trainingSet),1,1)),substr(tolower(trainingSet),2,nchar(trainingSet)))
@@ -123,7 +146,8 @@ for(i in c("recConf","recUnkn","recTotal")){
 					npathos<-eff[grep(j,eff[,1]),grep("pathos",colnames(eff))]
 					ncontrols<-eff[grep(j,eff[,1]),grep("controls",colnames(eff))]
 					colauc<-grep(j,colnames(auc))
-					jpeg(paste0("Results/COSMIC/Figures/",r,"_",j,"_COSMIC",i,rec,".jpeg"),width=7,height=6,units="in",res=350)
+					#jpeg(paste0("Results/COSMIC/Figures/",r,"_",j,"_COSMIC",i,rec,".jpeg"),width=7,height=6,units="in",res=350)
+					postscript(paste0("Results/COSMIC/Figures/",r,"_",j,"_COSMIC",i,rec,".eps"),width=7,height=6)
 					par(mar=c(4.1,4.1,0.1,2.1))
 					for(n in 1:length(scores)){
 						rowauc<-grep(scores[n],auc$scores)
@@ -141,10 +165,10 @@ for(i in c("recConf","recUnkn","recTotal")){
 								#main=paste0("Controls: ",m),
 								lwd=stroke_width,
 								xlim=c(0,1),ylim=c(0,1))
-							leg<-paste0(direction[n,grep(j,colnames(direction))]," (AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")")
+							leg<-paste0(direction[n,grep(j,colnames(direction))],"~'(AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")'")
 						}else{
 							lines(curvesc[,1],curvesc[,2],col=colors[n],lty=typeline[n],lwd=stroke_width)
-							leg<-c(leg,paste0(direction[n,grep(j,colnames(direction))]," (AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")"))
+							leg<-c(leg,paste0(direction[n,grep(j,colnames(direction))],"~'(AUC = ",sprintf("%.2f",round(auc[n,grep(j,colnames(auc))],2)),")'"))
 						}
 						
 					}
@@ -152,21 +176,21 @@ for(i in c("recConf","recUnkn","recTotal")){
 					if(r=="ROC"){
 						curve(1*x,add=T,col="lightgray",lwd=2)
 						if(max(auc[,grep(j,colnames(auc))])>0.85){
-							legend("bottomleft",legend=paste0(c("n ClinVar = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
+							legend("bottomleft",legend=paste0(c("n COSMIC = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
 						}else{
-							legend("topleft",legend=paste0(c("n ClinVar = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
+							legend("topleft",legend=paste0(c("n COSMIC = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
 						}
 					}else{
-						leg<-c(leg,paste0("prevalence = ",sprintf("%.2f",npathos/(ncontrols+npathos))))
+						leg<-c(leg,paste0("'prevalence = ",sprintf("%.2f",npathos/(ncontrols+npathos)),"'"))
 						colors<-c(colors,"lightgray")
 						abline(h=npathos/(ncontrols+npathos),col="lightgray",lwd=2)
 						if(npathos/(ncontrols+npathos)>0.4){
-							legend("bottomleft",legend=paste0(c("n ClinVar = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
+							legend("bottomleft",legend=paste0(c("n COSMIC = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
 						}else{
-							legend("topleft",legend=paste0(c("n ClinVar = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
+							legend("topleft",legend=paste0(c("n COSMIC = ","n controls = "),c(npathos,ncontrols)),bty='n',cex=legCex)
 						}
 					}
-					legend(posleg, legend=leg,col=colors,lwd=stroke_width,bty="n",cex=legCex,lty=typeline)
+					legend(posleg, legend=parse(text=leg),col=colors,lwd=stroke_width,bty="n",cex=legCex,lty=typeline)
 					dev.off()
 				}
 			}
