@@ -58,6 +58,7 @@ int main(){
         cout << "Creating index file. Please wait, it could take few minutes."<<endl;
 
 
+
         struct vecPos vecPosTmp;
         vector<vecPos> out(24);
         vector<streampos> posChrCadd,posChrDann,posChrFath,posChrFuns;
@@ -108,7 +109,7 @@ int main(){
                 }
                 if(test==4 && vecPosTmp.genPos.size()!=0){//same seek position in all files, replace by higher threshold
                     vecPosTmp.genPos.at(vecPosTmp.genPos.size()-1)=nextGenPos;
-                }else{
+                }else{ //add new pos
                     vecPosTmp.genPos.push_back(nextGenPos);
                     vecPosTmp.filePos.push_back(vecTmp);
                 }
@@ -138,3 +139,5 @@ int main(){
 
     return 0;
 }
+
+

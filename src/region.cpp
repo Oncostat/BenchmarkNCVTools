@@ -1,3 +1,13 @@
+/*
+ * step10_region.cpp
+ *
+ *  Created on: 17 déc. 2015
+ *      Author: drubay
+ */
+
+
+
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -16,6 +26,7 @@ int main(int argc, char* argv[]){
 	ifstream data(argv[1], std::ios::in);
 	ifstream patho(argv[2], std::ios::in);
 
+
 	if(!data){cerr << "The 1000 genomes input file does not exist." << endl;return 1;}
 	if(!patho){cerr << "The pathologic variant file does not exist." << endl;return 1;}
 
@@ -24,14 +35,14 @@ int main(int argc, char* argv[]){
 	vector<int> vidata(2);
 	vector<int> viscore(2);
 
-	getline(data,ldata,'\n');
+	getline(data,ldata,'\n'); // skip header
 	streampos posref = data.tellg();
 	streampos pos = posref;
 
 	while(getline(patho,lpatho,'\n')){
 		istringstream w(lpatho);
 		count=0;
-		while(getline(w,elts,'\t') && count<2){
+		while(getline(w,elts,'\t') && count<2){ //keep only coordinates and ref/alt to compare to ldata
 			istringstream(elts) >> tmp;
 			viscore.at(count)=tmp;
 			count++;

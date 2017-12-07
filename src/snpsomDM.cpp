@@ -1,3 +1,10 @@
+/*
+ * mergesnpsom.cpp
+ *
+ *  Created on: 5 janv. 2016
+ *      Author: drubay
+ */
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -49,7 +56,7 @@ int main(int argc, char* argv[])
 	istringstream eltssnp(lsnp);
 	count=0;
 	while(getline(eltssnp,elts,'\t')){
-		if(count==0){snpchr=chrMap[elts];}
+		if(count==0){snpchr=chrMap[elts];} 
 		if(count==1){istringstream(elts) >> snpbegin;}
 		if(count==2){istringstream(elts) >> snpend;}
 		if(count==3){snpsc=elts;}
@@ -70,7 +77,7 @@ int main(int argc, char* argv[])
 		count++;
 	}
 	som.clear();som.seekg(pos);
-        output << lsnp << '\t' << cllsc << '\t' << liversc << '\t' << lungsc << '\t' << melsc << endl;
+        output << lsnp << '\t' << cllsc << '\t' << liversc << '\t' << lungsc << '\t' << melsc << endl; //1st end snp < 1st end som
 
 	while(getline(snp,lsnp,'\n')){
 		if(som.eof()){
@@ -79,7 +86,7 @@ int main(int argc, char* argv[])
 			istringstream eltssnp(lsnp);
 			count=0;
 			while(getline(eltssnp,elts,'\t')){
-				if(count==0){snpchr=chrMap[elts];}
+				if(count==0){snpchr=chrMap[elts];} //istringstream(elts) >> snpchr;}
 				if(count==1){istringstream(elts) >> snpbegin;}
 				if(count==2){istringstream(elts) >> snpend;}
 				if(count==3){snpsc=elts;}
@@ -92,7 +99,7 @@ int main(int argc, char* argv[])
 				istringstream eltssom(lsom);
 				count=0;
 				while(getline(eltssom,elts,'\t')){
-					if(count==0){somchr=chrMap[elts];}
+					if(count==0){somchr=chrMap[elts];} 
 					if(count==1){istringstream(elts) >> sombegin;}
 					if(count==2){istringstream(elts) >> somend;}
 					if(count==3){cllsc=elts;}

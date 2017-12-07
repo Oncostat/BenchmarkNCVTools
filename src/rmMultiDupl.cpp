@@ -1,3 +1,11 @@
+/*
+ * rm_multidupl.cpp
+ *
+ *  Created on: 29 déc. 2015
+ *      Author: drubay
+ */
+
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -5,7 +13,7 @@
 #include <istream>
 #include <stdio.h>
 #include <cstring>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <time.h>  
 #include <vector>
 
@@ -15,8 +23,12 @@ using namespace std;
 
 
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
 	ifstream data(argv[1], std::ios::in);
+
+
+	/*checks*/
 	if (!data) {cerr << "The input file does not exist." << std::endl;return 1;}
 
 	string ldata,elts;

@@ -6,7 +6,7 @@
 
 vector<streampos> indexChr(fstream &file,struct fileInfos tmpInit,streampos eof){
     vector<streampos> out(24,eof);
-    streampos boundChr=1000000000;
+    streampos boundChr=1000000000; //small enough to avoid to miss a chr (maybe long...)
     string tmpChr;
     streampos diffPos,nextPos,pos;
     streampos begin=tmpInit.begin,end=tmpInit.end;
@@ -34,9 +34,9 @@ vector<streampos> indexChr(fstream &file,struct fileInfos tmpInit,streampos eof)
             file>>tmpChr;
             if(tmpInit.chrIndic){tmpChr=tmpChr.substr(3,tmpChr.size());}
             chr=convChr(tmpChr);
-            if(chr==vecChr[i]){
+            if(chr==vecChr[i]){ //found //begin stay begin
                 end=nextPos;
-                while(true){
+                while(true){ //dichot
                     diffPos=(streampos)(round((end-begin)/2));
                     nextPos=begin+diffPos;
                     if(diffPos<15){
@@ -111,7 +111,7 @@ streampos getFilePos(long long int curGenPos,fstream &file,bool zeroBased,stream
         }else{
             if(stoull(elt)>curGenPos){
                 boundTmp=(streampos)round(boundTmp/2);
-                if(boundTmp<15){
+                if(boundTmp<15){ //if not found because NA -> nextpos is the next, after NAs
                     file.clear();
                     file.seekg(curFilePos);
                     file.ignore(numeric_limits<streamsize>::max(),'\n');
@@ -144,9 +144,6 @@ streampos getFilePos(long long int curGenPos,fstream &file,bool zeroBased,stream
         }
     }
 }
-
-
-
 
 
 struct posLim posIndex(fstream &file,int refChr){

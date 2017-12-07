@@ -13,6 +13,7 @@ using namespace std;
 
 
 
+
 int main(int argc, char *argv[]){
     int test=0;
 
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]){
                         countGenPos=0;
                         saveGenPos=index.at(saveChr).genPos.at(0);
                     }
-                    while(posRef.posDNA>saveGenPos){
+                    while(posRef.posDNA>saveGenPos){ //find closest (higher) pos in index
                         ++countGenPos;
                         saveGenPos=index.at(saveChr).genPos.at(countGenPos);
                     }
@@ -110,6 +111,7 @@ int main(int argc, char *argv[]){
 
     for(int i=0;i<file.size();++i){
         posRef=posStruct(file.at(i),initData.chrIndic,initData.zeroBased);
+        //cout << file.at(i)<< endl;
         if(posRef.chr!=saveChr || posRef.posDNA>saveGenPos){
             if(posRef.chr!=saveChr){
                 if(posRef.chr>=index.size()){
@@ -120,7 +122,7 @@ int main(int argc, char *argv[]){
                 countGenPos=0;
                 saveGenPos=index.at(saveChr).genPos.at(0);
             }
-            while(posRef.posDNA>saveGenPos){
+            while(posRef.posDNA>saveGenPos){ //find closest (higher) pos in index
                 ++countGenPos;
                 saveGenPos=index.at(saveChr).genPos.at(countGenPos);
             }
@@ -158,3 +160,4 @@ int main(int argc, char *argv[]){
 
     return 0;
 }
+

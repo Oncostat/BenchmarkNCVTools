@@ -51,7 +51,7 @@ Then, run the snakefile (see below) which will automatically create the required
 First open a console in the directory of the pipeline.
 The complete pipeline may be printed using:
 ```bash
-snakemake report.txt --dag | dot | display
+snakemake pipeline.log --dag | dot | display
 ```
 ![Pipeline](dag.png)
 Simply run the following command to run the pipeline:

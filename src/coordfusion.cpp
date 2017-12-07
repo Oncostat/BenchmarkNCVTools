@@ -1,3 +1,13 @@
+/*
+ * coordfusion.cpp
+ *
+ *  Created on: 6 janv. 2016
+ *      Author: drubay
+ */
+
+
+
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -5,6 +15,7 @@
 #include <istream>
 #include <stdio.h>
 #include <cstring>
+#include <stdlib.h>  
 #include <vector>
 
 

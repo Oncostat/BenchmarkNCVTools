@@ -1,3 +1,12 @@
+/*
+ * filter_rec.cpp
+ *
+ *  Created on: 18 déc. 2015
+ *      Author: drubay
+ */
+
+
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -61,6 +70,7 @@ int main(int argc, char* argv[]){
         file.close();
         int maxConfRec=0,maxUnknRec=0,maxTotalRec=0;
 
+        //search the max rec of each categ + vector saving the number of the lines with rec
         for(int i=minrec;i<=maxrec;++i){
             for(int j=0;j<data.size();++j){
                 vector<string> strs;
@@ -98,8 +108,5 @@ int main(int argc, char* argv[]){
             outFileTotal.close();
         }
 
-
-
 	return 0;
 }
-
